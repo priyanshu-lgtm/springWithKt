@@ -2,14 +2,22 @@ package com.example.spring_practice
 
 import com.example.spring_practice.NotesController.NoteResponse
 import com.example.spring_practice.model.Note
+import com.example.spring_practice.repositories.NoteRepo
 import org.bson.types.ObjectId
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
+
+
+// post http://localhost:8085/notes
+//get http://localhost:8085/notes?ownerId
+//delete http://localhost:8085/notes/123
 
 @RestController
 @RequestMapping("/notes")
@@ -21,6 +29,11 @@ class NotesController(private val noteRepo: NoteRepo) {
         val color : Long,
         val content : String,
 //        val ownerId : String
+    )
+
+    data class CommonResponse(
+        val responseCode : Int,
+        val message : String
     )
 
     data class NoteResponse(
@@ -46,7 +59,6 @@ class NotesController(private val noteRepo: NoteRepo) {
 //                ownerId = ObjectId(body.ownerId)
             )
         )
-
         return response.toResponse()
     }
 
@@ -58,6 +70,11 @@ class NotesController(private val noteRepo: NoteRepo) {
             it.toResponse()
         }
 
+    }
+
+    @DeleteMapping(path = ["/{id}"])
+    fun deleteById(@PathVariable id: String?){
+        val response = noteRepo.deleteById(ObjectId(id))
     }
 }
 

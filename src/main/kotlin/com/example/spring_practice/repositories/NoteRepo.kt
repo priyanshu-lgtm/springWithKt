@@ -1,4 +1,4 @@
-package com.example.spring_practice
+package com.example.spring_practice.repositories
 
 import com.example.spring_practice.model.Note
 import org.bson.types.ObjectId
