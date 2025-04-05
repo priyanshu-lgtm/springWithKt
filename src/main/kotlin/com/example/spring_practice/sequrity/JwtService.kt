@@ -8,8 +8,53 @@ import org.springframework.stereotype.Service
 import java.util.Base64
 import java.util.Date
 
+//{
+//
+//    Dependency Injection:
+//
+//    JwtService is a Spring @Service that takes jwtSecret from application properties.
+//
+//    This secret is decoded into a signing key.
+//
+//    Token Configuration:
+//
+//    Access Token: Valid for 15 minutes.
+//
+//    Refresh Token: Valid for 30 days.
+//
+//    Token Generation (generateToken):
+//
+//    Creates a JWT with a subject (userId), type (auth_token or refresh_token), issued date, and expiration date.
+//
+//    Signs the token using HMAC SHA-256.
+//
+//    Generating Tokens:
+//
+//    generateAccessToken(userId): Creates an auth token.
+//
+//    generateRefreshToken(userId): Creates a refresh token.
+//
+//    Extracting User ID (getUserIdFromToken):
+//
+//    Removes "Bearer " prefix if present.
+//
+//    Parses the token to extract the subject (user ID).
+//
+//    Token Validation:
+//
+//    validateAuthToken(token): Checks if the token type is "auth_token".
+//
+//    validateRefreshToken(token): Checks if the token type is "refresh_token".
+//
+//    Parsing Claims (parseAllClaims):
+//
+//    Attempts to decode and verify the JWT.
+//
+//    Returns the token payload (claims) or null if invalid.
+//}
+
 @Service
-class JwtService(@Value("JWT_Base64") private val jwtSecret : String){
+class JwtService(@Value("\${jwt.secret}") private val jwtSecret : String){
 
     //creating a secret key to get auth token
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
@@ -44,11 +89,7 @@ class JwtService(@Value("JWT_Base64") private val jwtSecret : String){
     }
 
     fun getUserIdFromToken(token : String) : String{
-        val rawToken = if (token.startsWith("Bearer ")){
-            token.removePrefix("Bearer ")
-        } else token
-
-        val claims = parseAllClaims(rawToken)  ?: throw (IllegalArgumentException("Invalid token"))
+        val claims = parseAllClaims(token)  ?: throw (IllegalArgumentException("Invalid token"))
         return claims.subject
     }
 
@@ -65,11 +106,14 @@ class JwtService(@Value("JWT_Base64") private val jwtSecret : String){
     }
 
     private fun parseAllClaims(token: String) : Claims? {
+        val rawToken = if (token.startsWith("Bearer ")){
+            token.removePrefix("Bearer ")
+        } else token
         return try {
             Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(rawToken)
                 .payload
         }catch (e :Exception){
             null
